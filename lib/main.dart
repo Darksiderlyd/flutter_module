@@ -1,86 +1,159 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_boost/flutter_boost.dart';
 
+import 'main_origin.dart';
+
 void main() {
-  ///这里的CustomFlutterBinding调用务必不可缺少，用于控制Boost状态的resume和pause
+  PageVisibilityBinding.instance
+      .addGlobalObserver(AppGlobalPageVisibilityObserver());
   CustomFlutterBinding();
   runApp(const MyApp());
 }
 
+class AppGlobalPageVisibilityObserver extends GlobalPageVisibilityObserver {
+  @override
+  void onPagePush(Route<dynamic> route) {
+    Logger.log(
+        'boost_lifecycle: AppGlobalPageVisibilityObserver.onPageCreate route:${route.settings.name}');
+  }
+
+  @override
+  void onPageShow(Route<dynamic> route) {
+    Logger.log(
+        'boost_lifecycle: AppGlobalPageVisibilityObserver.onPageShow route:${route.settings.name}');
+  }
+
+  @override
+  void onPageHide(Route<dynamic> route) {
+    Logger.log(
+        'boost_lifecycle: AppGlobalPageVisibilityObserver.onPageHide route:${route.settings.name}');
+  }
+
+  @override
+  void onPagePop(Route<dynamic> route) {
+    Logger.log(
+        'boost_lifecycle: AppGlobalPageVisibilityObserver.onPageDestroy route:${route.settings.name}');
+  }
+
+  @override
+  void onForeground(Route route) {
+    Logger.log(
+        'boost_lifecycle: AppGlobalPageVisibilityObserver.onForeground route:${route.settings.name}');
+  }
+
+  @override
+  void onBackground(Route<dynamic> route) {
+    Logger.log(
+        'boost_lifecycle: AppGlobalPageVisibilityObserver.onBackground route:${route.settings.name}');
+  }
+}
 
 ///创建一个自定义的Binding，继承和with的关系如下，里面什么都不用写
-class CustomFlutterBinding extends WidgetsFlutterBinding with BoostFlutterBinding {}
+class CustomFlutterBinding extends WidgetsFlutterBinding
+    with BoostFlutterBinding {}
+
+class CustomInterceptor2 extends BoostInterceptor {
+  @override
+  void onPrePush(
+      BoostInterceptorOption option, PushInterceptorHandler handler) {
+    Logger.log('CustomInterceptor#onPrePush2~~~, $option');
+    // Add extra arguments
+    option.arguments!['CustomInterceptor2'] = "2";
+    if (!option.isFromHost! && option.name == "interceptor") {
+      handler.resolve(<String, dynamic>{'result': 'xxxx'});
+    } else {
+      handler.next(option);
+    }
+  }
+
+  @override
+  void onPostPush(
+      BoostInterceptorOption option, PushInterceptorHandler handler) {
+    Logger.log('CustomInterceptor#onPostPush2~~~, $option');
+    handler.next(option);
+  }
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  /// 由于很多同学说没有跳转动画，这里是因为之前exmaple里面用的是 [PageRouteBuilder]，
-  /// 其实这里是可以自定义的，和Boost没太多关系，比如我想用类似iOS平台的动画，
-  /// 那么只需要像下面这样写成 [CupertinoPageRoute] 即可
-  /// (这里全写成[MaterialPageRoute]也行，这里只不过用[CupertinoPageRoute]举例子)
-  ///
-  /// 注意，如果需要push的时候，两个页面都需要动的话，
-  /// （就是像iOS native那样，在push的时候，前面一个页面也会向左推一段距离）
-  /// 那么前后两个页面都必须是遵循CupertinoRouteTransitionMixin的路由
-  /// 简单来说，就两个页面都是CupertinoPageRoute就好
-  /// 如果用MaterialPageRoute的话同理
-
-  Map<String, FlutterBoostRouteFactory> routerMap = {
-    'mainPage': (RouteSettings settings, String? uniqueId) {
-      return CupertinoPageRoute(
+  static Map<String, FlutterBoostRouteFactory> routerMap = {
+    // '/': (settings, uniqueId) {
+    //   return PageRouteBuilder<dynamic>(
+    //       settings: settings, pageBuilder: (_, __, ___) => Container());
+    // },
+    'mainPage': (settings, uniqueId) {
+      return MaterialPageRoute(
           settings: settings,
           builder: (_) {
-            Map<String, Object> map = settings.arguments as Map<String, Object>;
-            String data = map['data'] as String;
-            return MainPage(
-              data: data,
-            );
+            return const MyHomePage(title: 'Flutter Demo Home Page');
           });
     },
     'simplePage': (settings, uniqueId) {
-      return CupertinoPageRoute(
+      return MaterialPageRoute(
           settings: settings,
           builder: (_) {
             Map<String, Object> map = settings.arguments as Map<String, Object>;
             String data = map['data'] as String;
             return SimplePage(
-              data: data,
+              title: data,
             );
           });
     },
   };
 
-  Route<dynamic>? routeFactory(RouteSettings settings, String uniqueId) {
-    FlutterBoostRouteFactory func = routerMap[settings.name] as FlutterBoostRouteFactory;
+  Route<dynamic>? routeFactory(RouteSettings settings, String? uniqueId) {
+    FlutterBoostRouteFactory? func = routerMap[settings.name!];
+    if (func == null) {
+      return null;
+    }
     return func(settings, uniqueId);
   }
 
-  Widget appBuilder(Widget home) {
-    return MaterialApp(
-      home: home,
-      debugShowCheckedModeBanner: true,
-
-      ///必须加上builder参数，否则showDialog等会出问题
-      builder: (_, __) {
-        return home;
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FlutterBoostApp(routeFactory as FlutterBoostRouteFactory, appBuilder: appBuilder,);
+    return FlutterBoostApp(routeFactory, interceptors: [
+      CustomInterceptor2(),
+    ]);
+  }
+}
+
+class BoostNavigatorObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('boost-didPush${route.settings.name}');
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('boost-didPop${route.settings.name}');
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('boost-didRemove${route.settings.name}');
+  }
+
+  @override
+  void didStartUserGesture(
+      Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('boost-didStartUserGesture${route.settings.name}');
   }
 }
 
 class MainPage extends StatelessWidget {
   const MainPage({super.key, required Object data});
+
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
@@ -90,11 +163,15 @@ class MainPage extends StatelessWidget {
 }
 
 class SimplePage extends StatelessWidget {
-  const SimplePage({super.key, required Object data});
+  const SimplePage({super.key, this.title});
+
+  final String? title;
+
   @override
   Widget build(BuildContext context) {
+    Logger.log(title ?? '');
     return const Scaffold(
-      body:  Center(child: Text('SimplePage')),
+      body: Center(child: Text('SimplePage')),
     );
   }
 }
