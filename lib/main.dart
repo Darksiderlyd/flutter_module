@@ -25,7 +25,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
 
   Route<dynamic>? routeFactory(RouteSettings settings, String? uniqueId) {
-    FlutterBoostRouteFactory? func = RoutePaths.routerMap[settings.name!];
+    FlutterBoostRouteFactory? func = RoutePathsBinding.routerMap[settings.name!];
     if (func == null) {
       return null;
     }

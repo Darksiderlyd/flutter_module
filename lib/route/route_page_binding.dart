@@ -1,25 +1,25 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_boost/flutter_boost.dart';
+import 'package:vp_module/route/route_paths.dart';
 
 import '../main_counter.dart';
 import '../page/test/testpage.dart';
 
-class RoutePaths {
+class RoutePathsBinding {
 
   static Map<String, FlutterBoostRouteFactory> routerMap = {
     // '/': (settings, uniqueId) {
     //   return PageRouteBuilder<dynamic>(
     //       settings: settings, pageBuilder: (_, __, ___) => Container());
     // },
-    'mainPage': (settings, uniqueId) {
+    Paths.pageMain: (settings, uniqueId) {
       return MaterialPageRoute(
           settings: settings,
           builder: (_) {
             return const MyHomePage(title: 'Flutter Demo Home Page');
           });
     },
-    'simplePage': (settings, uniqueId) {
+    Paths.pageSimple: (settings, uniqueId) {
       return MaterialPageRoute(
           settings: settings,
           builder: (_) {
@@ -31,5 +31,4 @@ class RoutePaths {
           });
     },
   };
-
 }
