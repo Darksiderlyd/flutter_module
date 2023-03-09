@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boost/flutter_boost.dart';
 
-import '../main_test.dart';
+import '../main_counter.dart';
 import '../page/test/testpage.dart';
 
 class RoutePaths {
