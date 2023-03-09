@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boost/flutter_boost.dart';
-import 'route/route_paths.dart';
+import 'route/route_page_binding.dart';
 import 'app/app_page_observer.dart';
 import 'app/intercepter.dart';
 
