@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_boost/flutter_boost.dart';
+
+import 'helper/channel_helper.dart';
 
 void main() => runApp(const MyApp());
 
@@ -28,10 +31,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  String _msg = "";
+  VoidCallback? remover;
+
+  @override
+  void initState() {
+    super.initState();
+    remover = MixChannel.addEventListener('appSend',  (key, arguments) {
+      _receiveNewMsg(arguments["appSendMsg"]);
+      return Future<dynamic>.value();
+    });
+
+  }
+
+  void _receiveNewMsg(String msg){
+    setState(() {
+      _msg = msg;
+    });
+  }
 
   void _incrementCounter() {
     setState(() {
       _counter++;
+
+      Map<String, Object> map = {"flutterSendMsg": _counter};
+
+      MixChannel.sendEventToNative("flutterSend", map);
     });
   }
 
@@ -45,12 +70,15 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            Text(
+              'You have pushed the button this many times $_msg:',
             ),
             Text(
               '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headlineMedium,
             ),
           ],
         ),
@@ -61,5 +89,11 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    MixChannel.removeListener(remover);
   }
 }

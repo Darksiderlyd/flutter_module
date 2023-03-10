@@ -14,6 +14,7 @@ class EnvConfig {
 class Env {
   // 获取到当前环境
   static const appEnv = String.fromEnvironment(EnvName.envKey);
+  static EnvConfig get envConfig => _getEnvConfig();
 
   // 开发环境
   static final EnvConfig _debugConfig = EnvConfig(
@@ -26,8 +27,6 @@ class Env {
     appTitle: "release",
     appDomain: "http://www.releasexxx.com",
   );
-
-  static EnvConfig get envConfig => _getEnvConfig();
 
 // 根据不同环境返回对应的环境配置
   static EnvConfig _getEnvConfig() {
