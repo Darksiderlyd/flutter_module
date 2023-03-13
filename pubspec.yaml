@@ -17,6 +17,8 @@ dependencies:
       url: 'https://github.com/alibaba/flutter_boost.git'
       ref: '4.2.0'
 
+  dio: ^5.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
